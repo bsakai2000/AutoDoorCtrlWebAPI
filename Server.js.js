@@ -58,6 +58,16 @@ app.get("/api/user", function(req , res){
 	var query = "select * from [students]";
 	executeQuery (res, query);
 });
+
+app.get("/api/active_user", function(req , res){
+	var query = "select * from [students] where TRIM(LOWER(Status)) = 'active' ";
+	executeQuery (res, query);
+});
+
+app.get("/api/inactive_user", function(req , res){
+	var query = "select * from [students] where TRIM(LOWER(Status)) = 'request' ";
+	executeQuery (res, query);
+});
 /*
 //POST API
  app.post("/api/user ", function(req , res){
