@@ -71,19 +71,19 @@ app.get("/api/inactive_user", function(req , res){
 /*
 //POST API
  app.post("/api/user ", function(req , res){
-	var query = "INSERT INTO [user] (Name,Email,Password) VALUES (req.body.Name,req.body.Email,req.body.Password)";
+	var query = "INSERT INTO [students] (Name,Email,Password) VALUES (req.body.Name,req.body.Email,req.body.Password)";
 	executeQuery (res, query);
 });
 
 //PUT API
  app.put("/api/user/:id", function(req , res){
-	var query = "UPDATE [user] SET Name= " + req.body.Name  +  " , Email=  " + req.body.Email + "  WHERE Id= " + req.params.id;
+	var query = "UPDATE [students] SET Name= " + req.body.Name  +  " , Email=  " + req.body.Email + "  WHERE Id= " + req.params.id;
 	executeQuery (res, query);
 });
 
 // DELETE API
  app.delete("/api/user /:id", function(req , res){
-	var query = "DELETE FROM [user] WHERE Id=" + req.params.id;
+	var query = "DELETE FROM [students] WHERE Id=" + req.params.id;
 	executeQuery (res, query);
 });
 */
