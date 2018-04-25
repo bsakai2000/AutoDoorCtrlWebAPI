@@ -47,6 +47,7 @@ var  executeQuery = function(res, query){
 					res.send(err);
 				}
 				else {
+					console.log("what the server is sending back: ",rs);
 					res.send(rs);
 				}
 			});
@@ -59,13 +60,20 @@ app.get("/api/active_user", function(req , res){
 	var query = "select * from [students] where TRIM(LOWER(Status)) = 'active' ";
 	executeQuery (res, query);
 });
+
 // get student request data **
 app.get("/api/inactive_user", function(req , res){
 	var query = "select * from [students] where TRIM(LOWER(Status)) = 'request' ";
 	executeQuery (res, query);
 });
 
-// login to the app ** [] if not registereds
+//add all student requests to active**
+app.get("/api/addAll", function(req , res){
+	var query = "UPDATE [students] SET Status = 'Active' WHERE TRIM(LOWER(Status)) = 'request'";
+	executeQuery (res, query);
+});
+
+// login to the app **
 app.post("/api/login", function(req , res){
 	console.log(req.body.RCSid);
 	var query = "select * from [students] where RCSid = '" + req.body.RCSid+"'" ;
@@ -75,52 +83,24 @@ app.post("/api/login", function(req , res){
 
 //register for the app ** 
 app.post("/api/request-access", function(req , res){
+	console.log(req.body.RCSid);
 	var query = "INSERT INTO [students] (RCSid,Status) VALUES ('"+req.body.RCSid+"', 'Request')";
+	console.log(query);
 	executeQuery (res, query);
 });
 
 //add singular student to active status **
-app.put("/api/adduser/:RCSid", function(req , res){
-	var query = "UPDATE [students] SET Status = 'Active' WHERE RCSid = '" + req.params.RCSid+"'";
-	executeQuery (res, query);
-});
-
-/*app.post("/api/adduser", function(req , res){
+app.post("/api/addtoActive", function(req , res){
+	console.log(req.body.RCSid);
 	var query = "UPDATE [students] SET Status = 'Active' WHERE RCSid = '" + req.body.RCSid+"'";
-	executeQuery (res, query);
-});*/
-
-//add all student requests to active**
-app.get("/api/addAll", function(req , res){
-	var query = "UPDATE [students] SET Status = 'Active' WHERE TRIM(LOWER(Status)) = 'request'";
+	console.log(query);
 	executeQuery (res, query);
 });
 
-//remove a student from active access
-app.delete("/api/remove/:RCSid", function(req , res){
-	var query = "DELETE FROM [students] WHERE RCSid = '" + req.params.RCSid+"'";
+//remove a student from active access **
+app.post("/api/remove", function(req , res){
+	console.log(req.body.RCSid);
+	var query = "DELETE FROM [students] WHERE RCSid = '" + req.body.RCSid+"'";
+	console.log(query);
 	executeQuery (res, query);
 });
-
-
-//example queries
-/*
-//POST API
- app.post("/api/user", function(req , res){
-	var query = "INSERT INTO [students] (Name,Email,Password) VALUES (req.body.Name,req.body.Email,req.body.Password)";
-	executeQuery (res, query);
-});
-
-//PUT API
- app.put("/api/user/:id", function(req , res){
-	var query = "UPDATE [students] SET Name= " + req.body.Name  +  " , Email=  " + req.body.Email + "  WHERE Id= " + req.params.id;
-	executeQuery (res, query);
-});
-
-/*
-// DELETE API
- app.delete("/api/user /:id", function(req , res){
-	var query = "DELETE FROM [students] WHERE Id=" + req.params.id;
-	executeQuery (res, query);
-});
-*/
