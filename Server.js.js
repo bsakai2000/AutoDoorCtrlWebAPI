@@ -73,10 +73,17 @@ app.get("/api/addAll", function(req , res){
 	executeQuery (res, query);
 });
 
-// login to the app **
+// login to the app  for students**
 app.post("/api/login", function(req , res){
 	console.log(req.body.RCSid);
 	var query = "select * from [students] where RCSid = '" + req.body.RCSid+"'" ;
+	console.log(query);
+	executeQuery (res, query);
+});
+// login to the app  for admin**
+app.post("/api/admin/login", function(req , res){
+	console.log(req.body.username);
+	var query = "select * from [admin] where username = '" + req.body.username+"' and password = '" + req.body.password+"'" ;
 	console.log(query);
 	executeQuery (res, query);
 });
@@ -102,5 +109,19 @@ app.post("/api/remove", function(req , res){
 	console.log(req.body.RCSid);
 	var query = "DELETE FROM [students] WHERE RCSid = '" + req.body.RCSid+"'";
 	console.log(query);
+	executeQuery (res, query);
+});
+
+//submit a location complaint **
+app.post("/api/submit-complaint", function(req , res){
+	console.log(req.body.location);
+	var query = "INSERT INTO [complaints] (location,message) VALUES ('"+req.body.Location+"', '"+req.body.Message+"')";
+	console.log(query);
+	executeQuery (res, query);
+});
+
+// list complaints made
+app.get("/api/get-complaints", function(req , res){
+	var query = "select * from [complaints] ";
 	executeQuery (res, query);
 });
