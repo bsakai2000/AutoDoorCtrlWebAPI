@@ -23,13 +23,6 @@ app.use(function (req, res, next) {
     console.log("App now running on port", port);
  });
 
-//Initiallising connection string
-/*var dbConfig = {
-    user:  "developer",
-    password: "developer",
-    server: "192.168.56.103",
-    database: "users"
-};*/
 var connection = mysql.createConnection({
 	user:		"developer",
 	password:	"developer",
@@ -49,27 +42,6 @@ var  executeQuery = function(res, query){
 			res.send(results);
 		}
 	});
-	/*sql.connect(dbConfig, function (err) {
-		if (err) {   
-			console.log("Error while connecting database :- " + err);
-			res.send(err);
-		}
-		else {
-			// create Request object
-			var request = new sql.Request();
-			// query to the database
-			request.query(query, function (err, rs) {
-				if (err) {
-					console.log("Error while querying database :- " + err);
-					res.send(err);
-				}
-				else {
-					console.log("what the server is sending back: ",rs);
-					res.send(rs);
-				}
-			});
-		}
-	});*/
 }
 
 // get active student data **
@@ -101,6 +73,7 @@ app.post("/api/login", function(req , res){
 // login to the app  for admin**
 app.post("/api/admin/login", function(req , res){
 	console.log(req.body.username);
+	//get the admin with this username
 	var query = "select * from admin where username = '" + req.body.username + "'";
 	console.log(query);
 	connection.query(query, function (connError, results, fields) {
@@ -109,6 +82,7 @@ app.post("/api/admin/login", function(req , res){
 			res.send(connError);
 		}
 		else {
+			//if there is a user with this username, check passwords. Otherwise fail
 			if(results.length > 0) {
 				bcrypt.compare(req.body.password, results[0].password, function(bcryptError, hashMatches) {
 					if (bcryptError) {
@@ -116,6 +90,7 @@ app.post("/api/admin/login", function(req , res){
 						res.send(bcryptError);
 					}
 					else {
+						//if the hash matches, password is good and we can login. Otherwise, fail
 						if(hashMatches) {
 							console.log(results);
 							res.send(results);
@@ -139,7 +114,7 @@ app.post("/api/admin/login", function(req , res){
 //register for the app ** 
 app.post("/api/request-access", function(req , res){
 	console.log(req.body.RCSid);
-	var query = "INSERT INTO students (RCSid,Status) VALUES ('"+req.body.RCSid+"', 'Request')";
+	var query = "INSERT INTO students (RCSid,Status) VALUES ('" + req.body.RCSid + "', 'Request')";
 	console.log(query);
 	executeQuery (res, query);
 });
