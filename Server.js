@@ -6,6 +6,7 @@ var app = express();
 var bcrypt = require("bcrypt");
 var fs = require("fs");
 var jwt = require("jsonwebtoken");
+var jwtExpress = require("express-jwt");
 
 // Setting Base directory
 app.use(bodyParser.json());
@@ -33,6 +34,10 @@ var connection = mysql.createConnection({
 	database:	"users"
 });
 
+const ADMIN_RSA_PRIVATE_KEY = fs.readFileSync('./private.key');
+const ADMIN_RSA_PUBLIC_KEY = fs.readFileSync('./public.key');
+var adminAuth = jwtExpress({secret : ADMIN_RSA_PUBLIC_KEY});
+
 //Function to connect to database and execute query
 var  executeQuery = function(res, query){	
 	connection.query(query, function (error, results, fields) {
@@ -48,19 +53,19 @@ var  executeQuery = function(res, query){
 }
 
 // get active student data **
-app.get("/api/active_user", function(req , res){
+app.get("/api/active_user", adminAuth, function(req , res){
 	var query = "select * from students where Status = 'Active' ";
 	executeQuery (res, query);
 });
 
 // get student request data **
-app.get("/api/inactive_user", function(req , res){
+app.get("/api/inactive_user", adminAuth, function(req , res){
 	var query = "select * from students where Status = 'Request' ";
 	executeQuery (res, query);
 });
 
 //add all student requests to active**
-app.get("/api/addAll", function(req , res){
+app.get("/api/addAll", adminAuth, function(req , res){
 	var query = "UPDATE students SET Status = 'Active' WHERE Status = 'Request'";
 	executeQuery (res, query);
 });
@@ -70,31 +75,7 @@ app.post("/api/login", function(req , res){
 	console.log(req.body.RCSid);
 	var query = "select * from `students` where `Status` = 'Active' and `RCSid` = '" + req.body.RCSid +"'" ;
 	console.log(query);
-	connection.query(query, function (error, results, fields) {
-		if (error) {
-			console.log("Database error :- " + error);
-			res.send(error);
-		}
-		else {
-			console.log(results);
-			if(results.length == 0) {
-				res.send("");
-			}
-			else {
-				console.log(results[0]);
-				console.log(results[0].RCSid);
-				const RSA_PRIVATE_KEY = fs.readFileSync('./private.key');
-				const jwtBearerToken = jwt.sign({}, RSA_PRIVATE_KEY, {
-					algorithm: 'RS256',
-					expiresIn: 3600,
-					subject: "user" + results[0].RCSid
-				});
-				console.log(jwtBearerToken);
-				res.cookie("SESSIONID", jwtBearerToken);
-				res.send();
-			}
-		}
-	});
+	executeQuery (res, query);
 });
 
 // login to the app  for admin**
@@ -119,6 +100,13 @@ app.post("/api/admin/login", function(req , res){
 					else {
 						//if the hash matches, password is good and we can login. Otherwise, fail
 						if(hashMatches) {
+							var jwtBearerToken = jwt.sign({}, ADMIN_RSA_PRIVATE_KEY, {
+								algorithm: 'RS256',
+								expiresIn: 3600,
+								subject: results[0].username
+							});
+							console.log(jwtBearerToken);
+							res.cookie("SESSIONID", jwtBearerToken);
 							console.log(results);
 							res.send(results);
 						}
@@ -147,7 +135,7 @@ app.post("/api/request-access", function(req , res){
 });
 
 //add singular student to active status **
-app.post("/api/addtoActive", function(req , res){
+app.post("/api/addtoActive", adminAuth, function(req , res){
 	console.log(req.body.RCSid);
 	var query = "UPDATE students SET Status = 'Active' WHERE RCSid = '" + req.body.RCSid+"'";
 	console.log(query);
@@ -155,7 +143,7 @@ app.post("/api/addtoActive", function(req , res){
 });
 
 //remove a student from active access **
-app.post("/api/remove", function(req , res){
+app.post("/api/remove", adminAuth, function(req , res){
 	console.log(req.body.RCSid);
 	var query = "DELETE FROM students WHERE RCSid = '" + req.body.RCSid+"'";
 	console.log(query);
@@ -171,7 +159,7 @@ app.post("/api/submit-complaint", function(req , res){
 });
 
 // list complaints made
-app.get("/api/get-complaints", function(req , res){
+app.get("/api/get-complaints", adminAuth, function(req , res){
 	var query = "select * from complaints ";
 	executeQuery (res, query);
 });
