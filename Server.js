@@ -73,7 +73,8 @@ app.get("/api/addAll", adminAuth, function(req , res){
 // login to the app  for students**
 app.post("/api/login", function(req , res){
 	console.log(req.body.RCSid);
-	var query = "select * from `students` where `Status` = 'Active' and `RCSid` = '" + req.body.RCSid +"'" ;
+	console.log(mysql.escape(req.body.RCSid));
+	var query = "select * from `students` where `Status` = 'Active' and `RCSid` = " + mysql.escape(req.body.RCSid);
 	console.log(query);
 	executeQuery (res, query);
 });
@@ -82,7 +83,7 @@ app.post("/api/login", function(req , res){
 app.post("/api/admin/login", function(req , res){
 	console.log(req.body.username);
 	//get the admin with this username
-	var query = "select * from admin where username = '" + req.body.username + "'";
+	var query = "select * from admin where username = " + mysql.escape(req.body.username);
 	console.log(query);
 	connection.query(query, function (connError, results, fields) {
 		if (connError) {
@@ -129,7 +130,7 @@ app.post("/api/admin/login", function(req , res){
 //register for the app ** 
 app.post("/api/request-access", function(req , res){
 	console.log(req.body.RCSid);
-	var query = "INSERT INTO students (RCSid,Status) VALUES ('" + req.body.RCSid + "', 'Request')";
+	var query = "INSERT INTO students (RCSid,Status) VALUES (" + mysql.escape(req.body.RCSid) + ", 'Request')";
 	console.log(query);
 	executeQuery (res, query);
 });
@@ -137,7 +138,7 @@ app.post("/api/request-access", function(req , res){
 //add singular student to active status **
 app.post("/api/addtoActive", adminAuth, function(req , res){
 	console.log(req.body.RCSid);
-	var query = "UPDATE students SET Status = 'Active' WHERE RCSid = '" + req.body.RCSid+"'";
+	var query = "UPDATE students SET Status = 'Active' WHERE RCSid = " + mysql.escape(req.body.RCSid);
 	console.log(query);
 	executeQuery (res, query);
 });
@@ -145,7 +146,7 @@ app.post("/api/addtoActive", adminAuth, function(req , res){
 //remove a student from active access **
 app.post("/api/remove", adminAuth, function(req , res){
 	console.log(req.body.RCSid);
-	var query = "DELETE FROM students WHERE RCSid = '" + req.body.RCSid+"'";
+	var query = "DELETE FROM students WHERE RCSid = " + mysql.escape(req.body.RCSid);
 	console.log(query);
 	executeQuery (res, query);
 });
@@ -153,7 +154,7 @@ app.post("/api/remove", adminAuth, function(req , res){
 //submit a location complaint **
 app.post("/api/submit-complaint", function(req , res){
 	console.log(req.body.location);
-	var query = "INSERT INTO complaints (location,message) VALUES ('"+req.body.Location+"', '"+req.body.Message+"')";
+	var query = "INSERT INTO complaints (location,message) VALUES (" + mysql.escape(req.body.Location) + ", " + mysql.escape(req.body.Message) + ")";
 	console.log(query);
 	executeQuery (res, query);
 });
