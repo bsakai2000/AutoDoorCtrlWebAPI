@@ -4,6 +4,8 @@ var bodyParser = require("body-parser");
 var mysql = require("mysql");
 var app = express();
 var bcrypt = require("bcrypt");
+var fs = require("fs");
+var jwt = require("jsonwebtoken");
 
 // Setting Base directory
 app.use(bodyParser.json());
@@ -11,7 +13,8 @@ app.use(bodyParser.json());
 //CORS Middleware
 app.use(function (req, res, next) {
     //Enabling CORS 
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", "http://192.168.56.104:4200");
+    res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, contentType,Content-Type, Accept, Authorization");
     next();
@@ -65,9 +68,33 @@ app.get("/api/addAll", function(req , res){
 // login to the app  for students**
 app.post("/api/login", function(req , res){
 	console.log(req.body.RCSid);
-	var query = "select * from `students` where `RCSid` = '" + req.body.RCSid +"'" ;
+	var query = "select * from `students` where `Status` = 'Active' and `RCSid` = '" + req.body.RCSid +"'" ;
 	console.log(query);
-	executeQuery (res, query);
+	connection.query(query, function (error, results, fields) {
+		if (error) {
+			console.log("Database error :- " + error);
+			res.send(error);
+		}
+		else {
+			console.log(results);
+			if(results.length == 0) {
+				res.send("");
+			}
+			else {
+				console.log(results[0]);
+				console.log(results[0].RCSid);
+				const RSA_PRIVATE_KEY = fs.readFileSync('./private.key');
+				const jwtBearerToken = jwt.sign({}, RSA_PRIVATE_KEY, {
+					algorithm: 'RS256',
+					expiresIn: 3600,
+					subject: "user" + results[0].RCSid
+				});
+				console.log(jwtBearerToken);
+				res.cookie("SESSIONID", jwtBearerToken);
+				res.send();
+			}
+		}
+	});
 });
 
 // login to the app  for admin**
