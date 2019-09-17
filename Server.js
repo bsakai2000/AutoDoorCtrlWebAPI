@@ -27,6 +27,7 @@ app.use(function (req, res, next) {
     console.log("App now running on port", port);
  });
 
+//Setup database connection
 var connection = mysql.createConnection({
 	user:		"developer",
 	password:	"developer",
@@ -34,8 +35,10 @@ var connection = mysql.createConnection({
 	database:	"users"
 });
 
+//RSA key pair used to generate/authenticate JWT session tokens
 const ADMIN_RSA_PRIVATE_KEY = fs.readFileSync('./private.key');
 const ADMIN_RSA_PUBLIC_KEY = fs.readFileSync('./public.key');
+//Middleware function that throws UnauthorizedError unless Authorization header contains a valid session cookie
 var adminAuth = jwtExpress({secret : ADMIN_RSA_PUBLIC_KEY});
 
 //Function to connect to database and execute query
@@ -72,10 +75,7 @@ app.get("/api/addAll", adminAuth, function(req , res){
 
 // login to the app  for students**
 app.post("/api/login", function(req , res){
-	console.log(req.body.RCSid);
-	console.log(mysql.escape(req.body.RCSid));
 	var query = "select * from `students` where `Status` = 'Active' and `RCSid` = " + mysql.escape(req.body.RCSid);
-	console.log(query);
 	executeQuery (res, query);
 });
 
@@ -84,7 +84,6 @@ app.post("/api/admin/login", function(req , res){
 	console.log(req.body.username);
 	//get the admin with this username
 	var query = "select * from admin where username = " + mysql.escape(req.body.username);
-	console.log(query);
 	connection.query(query, function (connError, results, fields) {
 		if (connError) {
 			console.log("Database error :- " + connError);
@@ -106,13 +105,11 @@ app.post("/api/admin/login", function(req , res){
 								expiresIn: 3600,
 								subject: results[0].username
 							});
-							console.log(jwtBearerToken);
+							//send the session token as a cookie to the client along with the admin entry
 							res.cookie("SESSIONID", jwtBearerToken);
-							console.log(results);
 							res.send(results);
 						}
 						else {
-							console.log("Wrong password!");
 							res.send([]);
 						}
 					}
@@ -120,7 +117,6 @@ app.post("/api/admin/login", function(req , res){
 				});
 			}
 			else {
-				console.log("No matching users found");
 				res.send([]);
 			}
 		}
@@ -129,33 +125,25 @@ app.post("/api/admin/login", function(req , res){
 
 //register for the app ** 
 app.post("/api/request-access", function(req , res){
-	console.log(req.body.RCSid);
 	var query = "INSERT INTO students (RCSid,Status) VALUES (" + mysql.escape(req.body.RCSid) + ", 'Request')";
-	console.log(query);
 	executeQuery (res, query);
 });
 
 //add singular student to active status **
 app.post("/api/addtoActive", adminAuth, function(req , res){
-	console.log(req.body.RCSid);
 	var query = "UPDATE students SET Status = 'Active' WHERE RCSid = " + mysql.escape(req.body.RCSid);
-	console.log(query);
 	executeQuery (res, query);
 });
 
 //remove a student from active access **
 app.post("/api/remove", adminAuth, function(req , res){
-	console.log(req.body.RCSid);
 	var query = "DELETE FROM students WHERE RCSid = " + mysql.escape(req.body.RCSid);
-	console.log(query);
 	executeQuery (res, query);
 });
 
 //submit a location complaint **
 app.post("/api/submit-complaint", function(req , res){
-	console.log(req.body.location);
 	var query = "INSERT INTO complaints (location,message) VALUES (" + mysql.escape(req.body.Location) + ", " + mysql.escape(req.body.Message) + ")";
-	console.log(query);
 	executeQuery (res, query);
 });
 
