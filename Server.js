@@ -107,7 +107,7 @@ app.post("/api/admin/login", function(req , res){
 							});
 							//send the session token as a cookie to the client along with the admin entry
 							res.cookie("SESSIONID", jwtBearerToken);
-							res.send(results);
+							res.send({SESSIONID : jwtBearerToken});
 						}
 						else {
 							res.send([]);
